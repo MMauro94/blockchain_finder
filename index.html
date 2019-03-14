@@ -1,16 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+      <title>Bitcoin blockchain search</title>
+      <link href="css/bootstrap.css" rel="stylesheet"/>
+      <link href="css/style.css" rel="stylesheet"/>
+   </head>
+   <body>
+      <div class="container-fluid">
+         <div id="input-form" class="row">
+            <div class="col-md-4">
 
-<head>
+            </div>
+            
+            <div class="col-md-4">
+               <form>
+                  <div class="form-group">
+                  <label for="transaction">Transaction to search</label>
+                  <input type="text" class="form-control" id="id_tx" aria-describedby="transaction area" placeholder="Enter transaction id">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Submit</button>
+               </form>
+            </div>
+            <div class="col-md-4">
 
-</head>
-
-<body>
-    <h1>Find transaction</h1>
-    <form action="search" method="GET">
-        <input type="text" name="tx_id">
-        <input type="submit">
-    </form>
-</body>
-
+            </div>
+         </div>
+      </div>
+   </body>
 </html>
