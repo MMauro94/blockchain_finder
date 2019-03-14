@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+   <title>Bitcoin blockchain search</title>
+   <link href={{ url_for('static', filename="css/bootstrap.css") }} rel="stylesheet" />
+   <link href={{ url_for('static', filename="css/style.css") }} rel="stylesheet" />
+</head>
+
+<body>
+   <div class="container-fluid">
+      <div id="output-area" class="row">
+         <!-- tx=%s outputno=%d type=%s value=%s -->
+         <div class="col-md-8 offset-md-2">
+            <table class="table">
+               <thead>
+                  <tr>
+                     <th scope="col">Number</th>
+                     <th scope="col">Type</th>
+                     <th scope="col">Value</th>
+                  </tr>
+
+               </thead>
+               <tbody>
+                  <h3>Transaction:</h3>
+                  <h6 id="tx-hash-title">{{ tx.hash }}</h6>
+
+                  <h3>Rendered in:</h3>
+                  <h6 id="render-time">{{ g.request_time() }}</h6>
+
+                  {% for no, output in enumerate(tx.outputs) %}
+                  <tr>
+                     <td>{{ no }}</td>
+                     <td>{{ output.type }}</td>
+                     <td>{{ output.value }}</td>
+                  </tr>
+                  {% endfor %}
+               </tbody>
+            </table>
+         </div>
+      </div>
+   </div>
+</body>
+
+</html>
