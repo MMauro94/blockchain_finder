@@ -6,9 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-blockchain-parser = "*"
 ipython = "*"
 flask = "*"
+blockchain-parser = {git = "https://github.com/alecalve/python-bitcoin-blockchain-parser.git"}
 
 [requires]
 python_version = "3.7"

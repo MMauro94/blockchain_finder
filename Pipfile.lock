@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "084c8e4d111d7d32f97665ec9ea49bb8744ee6a5aa89c25cad8232e44a14a9ce"
+            "sha256": "cd5ea97562de11f4af28ae5d674783aaaa7b33e7f39b357cb7c123456695305b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -32,11 +32,8 @@
             "version": "==0.1.0"
         },
         "blockchain-parser": {
-            "hashes": [
-                "sha256:1d4a6b3f35f5c892251358c6fc42459577c1ccc1c847738017e92827f38ea121"
-            ],
-            "index": "pypi",
-            "version": "==0.1.4"
+            "git": "https://github.com/alecalve/python-bitcoin-blockchain-parser.git",
+            "ref": "a2c7b50ec0e83bd5460e994272df3d9a283d3f08"
         },
         "click": {
             "hashes": [
@@ -172,12 +169,6 @@
                 "sha256:e8218dd399a61674745138520d0d4cf2621d7e032439341bc3f647bff125818d"
             ],
             "version": "==2.3.1"
-        },
-        "python-bitcoinlib": {
-            "hashes": [
-                "sha256:ebf1995024591702f980b66f91449f7412a87618e15eb594203db71061032647"
-            ],
-            "version": "==0.5.0"
         },
         "six": {
             "hashes": [
