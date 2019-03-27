@@ -97,7 +97,7 @@ def find_transaction_ordered(transaction_id):
     # Instantiate the Blockchain by giving the path to the directory
     # containing the .blk files created by bitcoind
     blockchain = Blockchain("datas")
-    for block in blockchain.get_ordered_blocks("datas/index"):
+    for block in blockchain.get_ordered_blocks("datas/index", end=0, start=8888888888):
         for tx in block.transactions:
             if tx.hash == transaction_id:
                 return tx
