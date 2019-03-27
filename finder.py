@@ -72,13 +72,13 @@ def redis_set(key, value):
 def find_transaction(transaction_id):
     # Instantiate the Blockchain by giving the path to the directory
     # containing the .blk files created by bitcoind
-    redis_key = f"{transaction_id}"
+    redis_key = str(transaction_id)
     redis_value = redis_get(redis_key)
 
-    if redis_value is not None:
-        return pickle.loads(redis_value)
-    elif redis_value == "":
+    if redis_value == b"":
         return None
+    elif redis_value is not None:
+        return pickle.loads(redis_value)
 
     res = load_transaction(transaction_id)
 
@@ -88,7 +88,7 @@ def find_transaction(transaction_id):
     else:
         found, to_be_cached = res
         for tx in to_be_cached:
-            marshaled_tx = pickle.dump(tx)
+            marshaled_tx = pickle.dumps(tx)
             redis_set(tx.hash, marshaled_tx)
         return found
 
