@@ -24,7 +24,9 @@ def before_request():
 def all_transactions():
     blockchain = Blockchain("datas")
 
-    for block in blockchain.get_unordered_blocks():
+    for block in blockchain.get_ordered_blocks(
+        "datas/index", end=542000, start=545289, cache="index-cache.pickle"
+    ):
         for tx in block.transactions:
             yield tx
 
@@ -91,17 +93,6 @@ def find_transaction(transaction_id):
             marshaled_tx = pickle.dumps(tx)
             redis_set(tx.hash, marshaled_tx)
         return found
-
-
-def find_transaction_ordered(transaction_id):
-    # Instantiate the Blockchain by giving the path to the directory
-    # containing the .blk files created by bitcoind
-    blockchain = Blockchain("datas")
-    for block in blockchain.get_ordered_blocks("datas/index", end=0, start=8888888888):
-        for tx in block.transactions:
-            if tx.hash == transaction_id:
-                return tx
-    return None
 
 
 @app.route("/")
