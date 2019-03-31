@@ -34,7 +34,7 @@ def all_transactions(p_id,num_proc):
     proc_end = 542000 + p_id * delta_proc
 
     for block in blockchain.get_ordered_blocks(
-        "datas/index", end=proc_end, start=proc_start, cache="index-cache.pickle"
+        "datas/index", end=proc_end, start=proc_start, cache="index-cache{}.pickle".format(p_id)
     ):
         for tx in block.transactions:
             yield tx
@@ -85,6 +85,7 @@ def redis_set(key, value):
         pass
 
 def find_transaction(transaction_id):
+    global NUM_PROCESSES
     # Instantiate the Blockchain by giving the path to the directory
     # containing the .blk files created by bitcoind
     redis_key = str(transaction_id)
@@ -100,17 +101,17 @@ def find_transaction(transaction_id):
     result_queue = Queue()                      #Used to store the returned value of "founder" process
 
     processes = []
-    for i in range(0,4):
+    for i in range(0,NUM_PROCESSES):
         processes[i] = Process(target=load_transaction,args=(transaction_id,i,NUM_PROCESSES,global_found, result_queue,))
         processes[i].start()
 
     #res = load_transaction(transaction_id,portion=1, num_portions = 1)
 
-    for i in range(0,4):
+    for i in range(0,NUM_PROCESSES):
         processes[i].join()
 
     res = None
-    if(global_found.value == 1):
+    if global_found.value == 1:
         res = result_queue.get() #Get shared result and put into res
     
     if res is None: 
