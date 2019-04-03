@@ -12,12 +12,11 @@ from flask import Flask, request, render_template, g
 from blockchain_parser.blockchain import Blockchain
 
 CACHE_RANGE = 200
-NUM_PROCESSES = 2
-#START_BLOCK = 545288
-#END_BLOCK = 542000
+NUM_PROCESSES = 3
 
-START_BLOCK = 545285
-END_BLOCK = 545285
+START_BLOCK = 545287
+END_BLOCK = 542000
+
 
 # first transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
 app = Flask(__name__)
@@ -37,11 +36,10 @@ def all_transactions(p_id):
     print("Process: " + str(p_id) + ", start=" + str(r.start) + ", stop=" + str(r.stop))
 
     for block in blockchain.get_ordered_blocks(
-        "datas/index", end=r.stop, start=r.start, cache="index-cache{}.pickle".format(p_id)
+        "datas/index", end=r.stop, start=r.start, cache="index-cache{}-{}.pickle".format(p_id, NUM_PROCESSES)
     ):
         print("BLOCK", block.height)
         for i, tx in enumerate(block.transactions):
-            print("BLOCK", block.height, " TX", i, ": ", tx.hash)
             yield tx
 
 
@@ -68,15 +66,21 @@ def load_transaction(transaction_id, iter_transaction, global_found, result_queu
 
     if found is None:
         return None
+    global_found.value = True #Notify all other processes
+    result_queue.put(found) #Push value into shared Queue
+
+    for tx in cached_values:
+        marshaled_tx = pickle.dumps(tx)
+        redis_set(tx.hash, marshaled_tx)
 
     while tx_index < CACHE_RANGE // 2 and iter_transaction:
-        cached_values.append(next(iter_transaction))
+        marshaled_tx = pickle.dumps(next(iter_transaction))
+        redis_set(tx.hash, marshaled_tx)
         tx_index += 1
 
-    global_found.value = True #Notify all other processes
-    result_queue.put([found, cached_values]) #Push value into shared Queue
-    print('quiu')
-    return found, cached_values
+
+
+    
 
 
 def redis_get(key):
@@ -122,7 +126,7 @@ def find_transaction(transaction_id):
 
         iterator = start_iterator(val, all_it)
         
-        p = Process(target=load_transaction,args=(transaction_id, iterator, global_found, result_queue,))
+        p = Process(target=load_transaction,args=(transaction_id, iterator, global_found, result_queue))
         processes.append(p)
         p.start()
         print("process " + str(i) + " started")
@@ -131,6 +135,7 @@ def find_transaction(transaction_id):
 
     for i, p in enumerate(processes):
         print("process " + str(i) + " joining")
+        print(p)
         p.join()
         print("process " + str(i) + " joined")
     
@@ -142,11 +147,10 @@ def find_transaction(transaction_id):
         redis_set(redis_key, "")
         return None
     else:
-        found, to_be_cached = res
-        for tx in to_be_cached:
-            marshaled_tx = pickle.dumps(tx)
-            redis_set(tx.hash, marshaled_tx)
-        return found
+
+        found = pickle.dumps(res)
+        redis_set(res.hash, found)
+        return res
 
 
 @app.route("/")
