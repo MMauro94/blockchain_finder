@@ -13,6 +13,7 @@ CACHE_RANGE = 200
 # first transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
 app = Flask(__name__)
 red = redis.Redis(host="localhost", port=6379, db=0)
+red.flushall()
 
 
 @app.before_request
@@ -25,8 +26,9 @@ def all_transactions():
     blockchain = Blockchain("datas")
 
     for block in blockchain.get_ordered_blocks(
-        "datas/index", end=542000, start=545289, cache="index-cache.pickle"
+        "datas/index", end=542000, start=545288, cache="index-cache.pickle"
     ):
+        print(block.height)
         for tx in block.transactions:
             yield tx
 
@@ -102,8 +104,8 @@ def hello():
 
 @app.route("/search", methods=["GET"])
 def print_transaction_view():
-    t = request.values.get("t", 0)
     id_tx = request.args.get("tx_id")
+    print(id_tx)
     if id_tx is None:
         return "Error"
     res = find_transaction(id_tx)
