@@ -5,7 +5,7 @@ from blockchain_parser.blockchain import Blockchain
 conn = mysql.connector.connect(
          host="localhost",
          user="root",
-         passwd="Goh1ua7b",
+         passwd="mypass",
          auth_plugin="mysql_native_password"
          )
 
@@ -18,7 +18,7 @@ conn = mysql.connector.connect(
          host="localhost",
          user="root",
          database="Blockchain",
-         passwd="Goh1ua7b",
+         passwd="mypass",
          auth_plugin="mysql_native_password"
          )
 cursor = conn.cursor()
