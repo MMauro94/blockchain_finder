@@ -25,14 +25,14 @@ cursor = conn.cursor()
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS transaction (
      id VARCHAR(70) PRIMARY KEY,
-     block MEDIUMINT NOT NULL
+     block MEDIUMINT UNSIGNED NOT NULL
      )''')
 
 add_transaction = ("INSERT INTO transaction "
                "(id, block) "
                "VALUES (%s, %s)")
 
-blockchain = Blockchain(os.path.expanduser('~/.bitcoin/blocks'))
+blockchain = Blockchain(os.path.expanduser('./datas/blocks'))
 for block in blockchain.get_unordered_blocks():
      block_height = block.height
      tx_list = [(tx.hash,block_height) for tx in block.transactions]
