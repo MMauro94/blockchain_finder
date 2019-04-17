@@ -3,9 +3,9 @@ import mysql.connector
 from blockchain_parser.blockchain import Blockchain
 
 conn = mysql.connector.connect(
-         host="localhost",
+         host="127.0.0.1",
          user="root",
-         passwd="mypass",
+         password="toor",
          auth_plugin="mysql_native_password"
          )
 
@@ -18,7 +18,7 @@ conn = mysql.connector.connect(
          host="localhost",
          user="root",
          database="Blockchain",
-         passwd="mypass",
+         passwd="toor",
          auth_plugin="mysql_native_password"
          )
 cursor = conn.cursor()
@@ -28,16 +28,27 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS transaction (
      block MEDIUMINT UNSIGNED NOT NULL
      )''')
 
-add_transaction = ("INSERT INTO transaction "
+add_transaction = ("INSERT ignore INTO transaction "
                "(id, block) "
                "VALUES (%s, %s)")
 
-blockchain = Blockchain(os.path.expanduser('./datas/blocks'))
-for block in blockchain.get_unordered_blocks():
+blockchain = Blockchain(os.path.expanduser('./datas'))
+conn.autocommit=False
+total_tx=0
+for block in blockchain.get_ordered_blocks('./datas/index', start=541999, end=545288):
      block_height = block.height
      tx_list = [(tx.hash,block_height) for tx in block.transactions]
+     total_tx += len(tx_list)
      cursor.executemany(add_transaction,tx_list)
-     conn.commit()
+     if(total_tx > 50000):
+          total_tx=0
+          print("Commit...")
+          conn.commit()
+          print("Committed")
+     print("Block", block_height, "(", total_tx, " transactions)")
+conn.commit()
+conn.autocommit=True
+print("Finished")
 
 # try:
 #      cursor.execute(add_transaction,('bb02282e8765482df5f6b15f5e9b187fac657a1920e7743cf1c420c9d6333bf1',545285))

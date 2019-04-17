@@ -11,9 +11,14 @@
 
 <body>
    <div class="container-fluid">
+      <nav class="navbar fixed-top navbar-dark bg-dark">
+         <a href="index.html"><span class="navbar-brand mb-0 h1">FAAPM-e</span></a>
+         <span class="navbar-brand">Blockchain Finder</span>
+      </nav>
       <div id="output-area" class="row">
          <!-- tx=%s outputno=%d type=%s value=%s -->
          <div class="col-md-8 offset-md-2">
+            {% if tx and tx.outputs|length > 0%}
             <table class="table">
                <thead>
                   <tr>
@@ -30,6 +35,8 @@
                   <h3>Rendered in:</h3>
                   <h6 id="render-time">{{ g.request_time() }}</h6>
 
+                  
+                  
                   {% for no, output in enumerate(tx.outputs) %}
                   <tr>
                      <td>{{ no }}</td>
@@ -39,9 +46,15 @@
                   {% endfor %}
                </tbody>
             </table>
+            {% else %}
+               <h2 style="padding-top:200px">No items to show..</h2>
+            {% endif %}
          </div>
       </div>
-   </div>
+      <footer class="fixed-bottom navbar navbar-dark bg-dark">
+         <a href="index.html"><span class="navbar-brand mb-0 h1">FAAPM-e</span></a>
+      </footer>
+   </div> <!-- Container fluid -->
 </body>
 
 </html>
