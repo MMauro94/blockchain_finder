@@ -3,9 +3,7 @@ import time
 import os
 import redis
 import pickle
-
-
-import mysql.connector
+import plyvel
 
 from collections import deque
 from flask import Flask, request, render_template, g
@@ -28,14 +26,7 @@ print("Creating index")
 next(blockchain.get_ordered_blocks("datas/index", cache="super-big-index.pickle"))
 print("Index created")
 
-
-mysql_conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    database="Blockchain",
-    passwd="toor",
-    auth_plugin="mysql_native_password",
-)
+pldb = plyvel.DB('tx_to_block/', create_if_missing=False)
 
 
 class IllegalState(Exception):
@@ -64,13 +55,11 @@ def get_block_transactions(block_height):
 
 # return transaction and list of the near ones
 def load_transaction(transaction_id):
-    cursor = mysql_conn.cursor()
-    cursor.execute("SELECT block FROM transaction WHERE id = %s", (transaction_id,))
-    block_tuple = cursor.fetchone()
+    block_height = pldb.get(transaction_id.encode())
 
-    if block_tuple is None:
+    if block_height is None:
         return None
-    block_it = get_block_transactions(block_tuple[0])
+    block_it = get_block_transactions(int(block_height))
 
     found = None
     for tx in block_it:
