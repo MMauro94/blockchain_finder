@@ -2,26 +2,46 @@
    <!DOCTYPE tsung SYSTEM "/usr/local/Cellar/tsung/1.7.0/share/tsung/tsung-1.0.dtd">
    
    <tsung loglevel="warning">
-   <clients>
-      <client host="localhost" use_controller_vm="true"/>
       
-   </clients>
-   <servers>
-      <server host="192.168.1.2" port="80" type="tcp"/>
-   </servers>
-   <load>
-      <arrivalphase phase="1" duration="1" unit="minute">
-         <users arrivalrate="5" unit="second"/>
-      </arrivalphase>
-    </load>
-   <sessions>
-      <session name="es_load" weight="1" type="ts_http">
-         <request>
-            <http url="/" method="GET"/>
-         </request>
-         <request>
-            <http url="/search" method="GET" contents="tx_id=bb02282e8765482df5f6b15f5e9b187fac657a1920e7743cf1c420c9d6333bf1"/>
-         </request>
-      </session>
-   </sessions>
- </tsung>
+      <clients>
+         <client host="localhost" use_controller_vm="true"/>
+      </clients>
+      
+      <servers>
+         <server host="192.168.1.2" port="80" type="tcp"/>
+      </servers>
+
+      <!-- <servers>
+         <server host="localhost" port="3000" type="tcp"/>
+      </servers> -->
+
+      <load>
+         <arrivalphase phase="1" duration="1" unit="minute">
+            <users arrivalrate="5" unit="second"/>
+         </arrivalphase>
+      </load>
+
+      <options>
+         <option name="file_server" id="tranx" value="/Users/andreaantoniazzi/Desktop/tranx.csv"/>
+      </options>
+
+      <sessions>
+
+         <session name="es_load" weight="1" type="ts_http">
+            
+            <setdynvars sourcetype="file" fileid="tranx" delimiter=";" order="iter">
+               <var name="tx" />
+            </setdynvars> 
+
+            <request >
+               <http url="/" method="GET"/>
+            </request>
+
+            <request subst="true">
+               <http url="/search" method="GET" contents="tx_id=%%_tx%%"/>
+            </request>
+         </session>
+
+      </sessions>
+
+   </tsung>
