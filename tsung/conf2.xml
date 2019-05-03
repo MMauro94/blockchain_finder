@@ -7,13 +7,13 @@
          <client host="localhost" use_controller_vm="true"/>
       </clients>
       
-      <servers>
-         <server host="192.168.1.2" port="80" type="tcp"/>
-      </servers>
-
       <!-- <servers>
-         <server host="localhost" port="3000" type="tcp"/>
+         <server host="192.168.1.2" port="80" type="tcp"/>
       </servers> -->
+
+      <servers>
+         <server host="localhost" port="3000" type="tcp"/>
+      </servers> 
 
       <load>
          <arrivalphase phase="1" duration="1" unit="minute">
@@ -38,7 +38,8 @@
             </request>
 
             <request subst="true">
-               <http url="/search" method="GET" contents="tx_id=%%_tx%%"/>
+               <http url="/search?tx_id=%%_tx%%" method="GET"/>
+               
             </request>
          </session>
 
