@@ -16,20 +16,36 @@
       </servers> 
 
       <load>
-         <arrivalphase phase="1" duration="1" unit="minute">
-            <users arrivalrate="5" unit="second"/>
+         <!-- Discover service rate -->
+         <arrivalphase phase="1" duration="2" unit="minute">
+            <users arrivalrate="0.05" unit="second"/>
+         </arrivalphase>
+
+         <!-- Low load -->
+         <arrivalphase phase="2" duration="5" unit="minute">
+            <users arrivalrate="0.1" unit="second"/>
+         </arrivalphase>
+
+         <!-- Medium load -->
+         <arrivalphase phase="3" duration="5" unit="minute">
+            <users arrivalrate="1" unit="second"/>
+         </arrivalphase>
+
+         <!-- High load -->
+         <arrivalphase phase="4" duration="5" unit="minute">
+            <users arrivalrate="3" unit="second"/>
          </arrivalphase>
       </load>
 
       <options>
-         <option name="file_server" id="tranx" value="/Users/andreaantoniazzi/Desktop/tranx.csv"/>
+         <option name="file_server" id="tranx" value="/Users/andreaantoniazzi/Desktop/tx-0-541999.data"/>
       </options>
 
       <sessions>
 
          <session name="es_load" weight="1" type="ts_http">
             
-            <setdynvars sourcetype="file" fileid="tranx" delimiter=";" order="iter">
+            <setdynvars sourcetype="file" fileid="tranx" delimiter=";" order="random">
                <var name="tx" />
             </setdynvars> 
 
