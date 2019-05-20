@@ -18,37 +18,67 @@
       <div id="output-area" class="row">
          <!-- tx=%s outputno=%d type=%s value=%s -->
          <div class="col-md-8 offset-md-2">
-            {% if tx and tx.outputs|length > 0%}
-            <table class="table">
-               <thead>
-                  <tr>
-                     <th scope="col">Number</th>
-                     <th scope="col">Type</th>
-                     <th scope="col">Value</th>
-                  </tr>
+			{% if tx %}
+				<h3>Transaction:</h3>
+				<h6 id="tx-hash-title">{{ tx.hash }}</h6>
 
-               </thead>
-               <tbody>
-                  <h3>Transaction:</h3>
-                  <h6 id="tx-hash-title">{{ tx.hash }}</h6>
-
-                  <h3>Rendered in:</h3>
-                  <h6 id="render-time">{{ g.request_time() }}</h6>
-
-                  
-                  
-                  {% for no, output in enumerate(tx.outputs) %}
-                  <tr>
-                     <td>{{ no }}</td>
-                     <td>{{ output.type }}</td>
-                     <td>{{ output.value }}</td>
-                  </tr>
-                  {% endfor %}
-               </tbody>
-            </table>
-            {% else %}
-               <h2 style="padding-top:200px">No items to show..</h2>
-            {% endif %}
+				<h3>Rendered in:</h3>
+				<h6 id="render-time">{{ g.request_time() }}</h6>
+				
+				<!-- INPUTS -->
+				{% if tx.inputs|length > 0 %}
+				<table class="table">
+				   <thead>
+						<tr>
+							<th colspan="2">Inputs</th>
+						</tr>
+						<tr>
+							<th scope="col">Number</th>
+							<th scope="col">Transaction</th>
+						</tr>
+				   </thead>
+				   <tbody>
+					  {% for no, input in enumerate(tx.inputs) %}
+					  <tr>
+						 <td>{{ no }}</td>
+						 <td><a href="/search?tx_id={{ input.transaction_hash }}">{{ input.transaction_hash }}</a></td>
+					  </tr>
+					  {% endfor %}
+				   </tbody>
+				</table>
+				{% else %}
+				   <h2 style="padding-top:200px">No inputs</h2>
+				{% endif %}
+				
+				<!-- OUTPUTS -->
+				{% if tx.outputs|length > 0 %}
+				<table class="table">
+				   <thead>
+						<tr>
+							<th colspan="3">Outputs</th>
+						</tr>
+						<tr>
+							<th scope="col">Number</th>
+							<th scope="col">Type</th>
+							<th scope="col">Value</th>
+						</tr>
+				   </thead>
+				   <tbody>
+					  {% for no, output in enumerate(tx.outputs) %}
+					  <tr>
+						 <td>{{ no }}</td>
+						 <td>{{ output.type }}</td>
+						 <td>{{ output.value}}</td>
+					  </tr>
+					  {% endfor %}
+				   </tbody>
+				</table>
+				{% else %}
+				   <h2 style="padding-top:200px">No outputs</h2>
+				{% endif %}
+			{% else %}
+				   <h2 style="padding-top:200px">Transaction not found!</h2>
+			{% endif %}
          </div>
       </div>
       <footer class="fixed-bottom navbar navbar-dark bg-dark">
