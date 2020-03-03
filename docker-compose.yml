@@ -5,8 +5,22 @@ services:
       context: ./app
     volumes:
       - ./app/src:/app
-      - C:\blockchain_merda:/blockchain
+      - ./blockchain:/blockchain
     ports:
-    - 8080:8080
+      - 8080:8080
+    depends_on:
+      - redis
   redis:
     image: redis
+  tsung:
+    image: prima/tsung
+    volumes:
+      - ./tsung/tsung.xml:/root/.tsung/tsung.xml
+      - ./tsung/test_transactions.data:/root/.tsung/test_transactions.data
+      - ./tsung/logs:/root/.tsung/log
+    ports:
+      - 8091:8091
+    depends_on:
+      - blockchain-finder
+    entrypoint: tsung start
+    restart: on-failure

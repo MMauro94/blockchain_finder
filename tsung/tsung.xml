@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/share/tsung/tsung-1.0.dtd">
+<tsung loglevel="warning">
+    <clients>
+        <client host="localhost" use_controller_vm="true"/>
+    </clients>
+
+    <!-- <servers>
+       <server host="192.168.1.2" port="80" type="tcp"/>
+    </servers> -->
+
+    <servers>
+        <server host="blockchain-finder" port="8080" type="tcp"/>
+    </servers>
+
+    <load>
+        <!-- Discover service rate -->
+        <arrivalphase phase="1" duration="2" unit="minute">
+            <users arrivalrate="0.05" unit="second"/>
+        </arrivalphase>
+
+        <!-- Low load -->
+        <arrivalphase phase="2" duration="5" unit="minute">
+            <users arrivalrate="0.1" unit="second"/>
+        </arrivalphase>
+
+        <!-- Medium load -->
+        <arrivalphase phase="3" duration="5" unit="minute">
+            <users arrivalrate="1" unit="second"/>
+        </arrivalphase>
+
+        <!-- High load -->
+        <arrivalphase phase="4" duration="5" unit="minute">
+            <users arrivalrate="3" unit="second"/>
+        </arrivalphase>
+    </load>
+
+    <options>
+        <option name="file_server" id="tranx" value="/root/.tsung/test_transactions.data"/>
+    </options>
+
+    <sessions>
+        <session name="es_load" weight="1" type="ts_http">
+            <setdynvars sourcetype="file" fileid="tranx" delimiter="\n" order="random">
+                <var name="tx"/>
+            </setdynvars>
+
+            <request>
+                <http url="/" method="GET"/>
+            </request>
+
+            <request subst="true">
+                <http url="/search?tx_id=%%_tx%%" method="GET"/>
+            </request>
+        </session>
+    </sessions>
+</tsung>
