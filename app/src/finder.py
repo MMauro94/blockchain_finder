@@ -13,20 +13,20 @@ CACHE_RANGE = 200
 
 # first transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
 app = Flask(__name__)
-red = redis.Redis(host="localhost", port=6379, db=0)
+red = redis.Redis(host="redis", port=6379, db=0)
 red.flushall()
 
-blockchain = Blockchain("datas")
+blockchain = Blockchain("/blockchain/blocks")
 
 # force the creation of the index
 if os.path.exists("super-big-index.pickle"):
     os.remove("super-big-index.pickle")
 
 print("Creating index")
-next(blockchain.get_ordered_blocks("datas/index", cache="super-big-index.pickle"))
+next(blockchain.get_ordered_blocks("/blockchain/blocks/index", cache="super-big-index.pickle"))
 print("Index created")
 
-pldb = plyvel.DB('tx_to_block/', create_if_missing=False)
+pldb = plyvel.DB('/blockchain/tx_to_block/', create_if_missing=False)
 
 
 class IllegalState(Exception):
@@ -40,13 +40,11 @@ def before_request():
 
 
 def get_block_transactions(block_height):
-    blockchain = Blockchain("datas")
-
     for block in blockchain.get_ordered_blocks(
-        "datas/index",
-        end=block_height,
-        start=block_height + 1,
-        cache="super-big-index.pickle",
+            "/blockchain/blocks/index",
+            end=block_height,
+            start=block_height + 1,
+            cache="super-big-index.pickle",
     ):
         print(block.height)
         for tx in block.transactions:
@@ -120,7 +118,14 @@ def print_transaction_view():
         http_code = 404
     else:
         http_code = 200
-    return render_template("output.html", tx=res, enumerate=enumerate),http_code
+    return render_template("output.html", tx=res, enumerate=enumerate), http_code
+
+
+@app.route("/sample", methods=["GET"])
+def print_one():
+    for block in blockchain.get_unordered_blocks():
+        for tx in block.transactions:
+            return tx.hash
 
 
 # @app.route("/search_ordered", methods=["GET"])
@@ -132,4 +137,4 @@ def print_transaction_view():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    app.run(host="0.0.0.0", port=8080)

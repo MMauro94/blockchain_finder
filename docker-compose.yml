@@ -1,0 +1,12 @@
+version: '2.4'
+services:
+  blockchain-finder:
+    build:
+      context: ./app
+    volumes:
+      - ./app/src:/app
+      - C:\blockchain_merda:/blockchain
+    ports:
+    - 8080:8080
+  redis:
+    image: redis
