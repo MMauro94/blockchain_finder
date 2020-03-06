@@ -5,22 +5,34 @@ services:
       context: ./app
     volumes:
       - ./app/src:/app
-      - ./blockchain:/blockchain
+      - ./blockchain/blocks:/blockchain/blocks
+      - ./blockchain/tx_to_block:/blockchain/tx_to_block
+      - ./blockchain/super-big-index.pickle:/blockchain/super-big-index.pickle
     ports:
       - 8080:8080
+      - 9191:9191
     depends_on:
       - redis
+    cpus: '2'
+    mem_limit: 6656M
+
   redis:
     image: redis
+    cpus: '1'
+    mem_limit: 1024M
+
   tsung:
     image: prima/tsung
+    entrypoint: /start.sh
     volumes:
       - ./tsung/tsung.xml:/root/.tsung/tsung.xml
       - ./tsung/test_transactions.data:/root/.tsung/test_transactions.data
       - ./tsung/logs:/root/.tsung/log
+      - ./tsung/start.sh:/start.sh
     ports:
       - 8091:8091
     depends_on:
       - blockchain-finder
-    entrypoint: tsung start
     restart: on-failure
+    cpus: '3'
+    mem_limit: 256M

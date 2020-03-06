@@ -38,9 +38,9 @@
 						</tr>
 				   </thead>
 				   <tbody>
-					  {% for no, input in enumerate(tx.inputs) %}
+					  {% for input in tx.inputs %}
 					  <tr>
-						 <td>{{ no }}</td>
+						 <td>{{ loop.index }}</td>
 						 <td><a href="/search?tx_id={{ input.transaction_hash }}">{{ input.transaction_hash }}</a></td>
 					  </tr>
 					  {% endfor %}
@@ -64,9 +64,9 @@
 						</tr>
 				   </thead>
 				   <tbody>
-					  {% for no, output in enumerate(tx.outputs) %}
+					  {% for output in tx.outputs %}
 					  <tr>
-						 <td>{{ no }}</td>
+						 <td>{{ loop.index }}</td>
 						 <td>{{ output.type }}</td>
 						 <td>{{ output.value}}</td>
 					  </tr>

@@ -4,29 +4,35 @@ import os
 import redis
 import pickle
 import plyvel
+import threading
 
 from collections import deque
 from flask import Flask, request, render_template, g
 from blockchain_parser.blockchain import Blockchain
 
+# first transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
 CACHE_RANGE = 200
 
-# first transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
+print("Starting blockchain finder...")
 app = Flask(__name__)
-red = redis.Redis(host="redis", port=6379, db=0)
-red.flushall()
 
+print("Connecting to redis...")
+while True:
+    try:
+        red = redis.Redis(host="redis", port=6379, db=0)
+        red.flushall()
+        print("Redis connection OK")
+        break
+    except:
+        print("Redis not ready yet")
+        time.sleep(1)
+
+print("Reading blockchain...")
 blockchain = Blockchain("/blockchain/blocks")
-
-# force the creation of the index
-if os.path.exists("super-big-index.pickle"):
-    os.remove("super-big-index.pickle")
-
-print("Creating index")
-next(blockchain.get_ordered_blocks("/blockchain/blocks/index", cache="super-big-index.pickle"))
-print("Index created")
-
 pldb = plyvel.DB('/blockchain/tx_to_block/', create_if_missing=False)
+pldbLock = threading.Lock()
+
+print("OK")
 
 
 class IllegalState(Exception):
@@ -44,7 +50,7 @@ def get_block_transactions(block_height):
             "/blockchain/blocks/index",
             end=block_height,
             start=block_height + 1,
-            cache="super-big-index.pickle",
+            cache="/blockchain/super-big-index.pickle",
     ):
         print(block.height)
         for tx in block.transactions:
@@ -53,9 +59,11 @@ def get_block_transactions(block_height):
 
 # return transaction and list of the near ones
 def load_transaction(transaction_id):
-    block_height = pldb.get(transaction_id.encode())
+    with pldbLock:
+        block_height = pldb.get(transaction_id.encode())
 
     if block_height is None:
+        print("Block height of " + transaction_id + " is none")
         return None
     block_it = get_block_transactions(int(block_height))
 
@@ -97,6 +105,7 @@ def find_transaction(transaction_id):
     if redis_value == b"":
         return None
     elif redis_value is not None:
+        print("Found " + transaction_id + " in redis cache")
         return pickle.loads(redis_value)
 
     return load_transaction(transaction_id)
@@ -110,15 +119,15 @@ def hello():
 @app.route("/search", methods=["GET"])
 def print_transaction_view():
     id_tx = request.args.get("tx_id")
-    print(id_tx)
     if id_tx is None:
         return "Error"
     res = find_transaction(id_tx)
     if res is None:
+        print("Transaction " + id_tx + " not found")
         http_code = 404
     else:
         http_code = 200
-    return render_template("output.html", tx=res, enumerate=enumerate), http_code
+    return render_template("output.html", tx=res), http_code
 
 
 @app.route("/sample", methods=["GET"])
@@ -126,14 +135,6 @@ def print_one():
     for block in blockchain.get_unordered_blocks():
         for tx in block.transactions:
             return tx.hash
-
-
-# @app.route("/search_ordered", methods=["GET"])
-# def print_transaction_view():
-#     id_tx = request.args.get("tx_id")
-#     res = find_transaction_ordered(id_tx)
-
-#     return print_transaction(res)
 
 
 if __name__ == "__main__":
