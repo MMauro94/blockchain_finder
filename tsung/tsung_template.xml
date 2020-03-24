@@ -11,9 +11,8 @@
     </servers>
 
     <load>
-        <!-- Discover service rate -->
-        <arrivalphase phase="1" duration="2" unit="minute">
-            <users arrivalrate="0.125" unit="second"/>
+        <arrivalphase phase="1" duration="%duration%" unit="minute">
+            <users arrivalrate="%arrivalRate%" unit="second"/>
         </arrivalphase>
     </load>
 

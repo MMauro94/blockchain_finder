@@ -3,29 +3,31 @@ services:
   blockchain-finder:
     build:
       context: ./app
+    container_name: blockchain-finder_finder
     volumes:
       - ./app/src:/app
-      - ./blockchain/blocks:/blockchain/blocks
-      - ./blockchain/tx_to_block:/blockchain/tx_to_block
-      - ./blockchain/super-big-index.pickle:/blockchain/super-big-index.pickle
+      - ./blockchain:/blockchain
     ports:
-      - 8080:8080
+      - 8081:8080
       - 9191:9191
     depends_on:
       - redis
-    cpus: '2'
-    mem_limit: 6656M
+    cpus: '0.5'
+    mem_limit: 3G
 
   redis:
     image: redis
-    cpus: '1'
-    mem_limit: 1024M
+    container_name: blockchain-finder_reids
+    cpus: '0.2'
+    mem_limit: 700M
 
   tsung:
     image: prima/tsung
     entrypoint: /start.sh
+    container_name: blockchain-finder_tsung
     volumes:
-      - ./tsung/tsung.xml:/root/.tsung/tsung.xml
+      - ./tsung/tsung_template.xml:/root/.tsung/tsung_template.xml
+      - ./tsung/results.txt:/results.txt
       - ./tsung/test_transactions.data:/root/.tsung/test_transactions.data
       - ./tsung/logs:/root/.tsung/log
       - ./tsung/start.sh:/start.sh
@@ -34,5 +36,5 @@ services:
     depends_on:
       - blockchain-finder
     restart: on-failure
-    cpus: '3'
+    cpus: '1'
     mem_limit: 256M

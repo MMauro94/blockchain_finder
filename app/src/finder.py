@@ -5,10 +5,13 @@ import redis
 import pickle
 import plyvel
 import threading
+import bitcoin
 
 from collections import deque
 from flask import Flask, request, render_template, g
 from blockchain_parser.blockchain import Blockchain
+from blockchain_parser.index import DBBlockIndex
+from blockchain_parser.utils import format_hash
 
 # first transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
 CACHE_RANGE = 200
@@ -29,6 +32,24 @@ while True:
 
 print("Reading blockchain...")
 blockchain = Blockchain("/blockchain/blocks")
+levelDBMap = dict()
+levelDBMapLock = threading.Lock()
+
+
+def loadIndex(self, index):
+    with levelDBMapLock:
+        if index not in levelDBMap:
+            db = plyvel.DB(index, compression=None)
+            blockIndexes = [DBBlockIndex(format_hash(k[1:]), v)
+                                 for k, v in db.iterator() if k[0] == ord('b')]
+            db.close()
+            blockIndexes.sort(key=lambda x: x.height)
+            levelDBMap[index] = blockIndexes
+        return levelDBMap[index]
+
+
+blockchain.__getBlockIndexes = loadIndex
+
 pldb = plyvel.DB('/blockchain/tx_to_block/', create_if_missing=False)
 pldbLock = threading.Lock()
 
@@ -52,25 +73,24 @@ def get_block_transactions(block_height):
             start=block_height + 1,
             cache="/blockchain/super-big-index.pickle",
     ):
-        print(block.height)
         for tx in block.transactions:
             yield tx
 
 
 # return transaction and list of the near ones
-def load_transaction(transaction_id):
+def load_transaction(transaction_id, redis):
     with pldbLock:
         block_height = pldb.get(transaction_id.encode())
 
     if block_height is None:
-        print("Block height of " + transaction_id + " is none")
         return None
     block_it = get_block_transactions(int(block_height))
 
     found = None
     for tx in block_it:
         marshaled_tx = pickle.dumps(tx)
-        redis_set(tx.hash, marshaled_tx)
+        if redis:
+            redis_set(tx.hash, marshaled_tx)
 
         if tx.hash == transaction_id:
             found = tx
@@ -96,19 +116,19 @@ def redis_set(key, value):
         pass
 
 
-def find_transaction(transaction_id):
+def find_transaction(transaction_id, redis):
     # Instantiate the Blockchain by giving the path to the directory
     # containing the .blk files created by bitcoind
-    redis_key = str(transaction_id)
-    redis_value = redis_get(redis_key)
+    if redis:
+        redis_key = str(transaction_id)
+        redis_value = redis_get(redis_key)
 
-    if redis_value == b"":
-        return None
-    elif redis_value is not None:
-        print("Found " + transaction_id + " in redis cache")
-        return pickle.loads(redis_value)
+        if redis_value == b"":
+            return None
+        elif redis_value is not None:
+            return pickle.loads(redis_value)
 
-    return load_transaction(transaction_id)
+    return load_transaction(transaction_id, redis)
 
 
 @app.route("/")
@@ -118,16 +138,19 @@ def hello():
 
 @app.route("/search", methods=["GET"])
 def print_transaction_view():
-    id_tx = request.args.get("tx_id")
+    id_tx = request.args.get("tx_id").strip()
+    redis = request.args.get("no_redis", None) is None
     if id_tx is None:
         return "Error"
-    res = find_transaction(id_tx)
+    res = find_transaction(id_tx, redis)
     if res is None:
-        print("Transaction " + id_tx + " not found")
         http_code = 404
     else:
         http_code = 200
-    return render_template("output.html", tx=res), http_code
+    try:
+        return render_template("output.html", tx=res), http_code
+    except bitcoin.core.script.CScriptTruncatedPushDataError:
+        return render_template("output.html", tx=None), http_code
 
 
 @app.route("/sample", methods=["GET"])

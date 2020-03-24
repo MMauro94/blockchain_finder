@@ -6,4 +6,4 @@ ADD ./src/requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 RUN pip install uwsgi
 
-CMD uwsgi --http 0.0.0.0:8080 --wsgi-file /app/finder.py --callable app --threads 8 --stats 0.0.0.0:9191
+CMD uwsgi --http 0.0.0.0:8080 --wsgi-file /app/finder.py --callable app --threads 1 -l 128 --stats 0.0.0.0:9191
