@@ -8,33 +8,54 @@ services:
       - ./app/src:/app
       - ./blockchain:/blockchain
     ports:
-      - 8081:8080
+      - 8081:8081
       - 9191:9191
     depends_on:
       - redis
     cpus: '0.5'
-    mem_limit: 3G
+    mem_limit: 4G
 
   redis:
     image: redis
+    entrypoint: ["redis-server", "/usr/local/etc/redis/redisconf.conf"]
     container_name: blockchain-finder_reids
     cpus: '0.2'
-    mem_limit: 700M
+    mem_limit: 500M
+    volumes:
+        - ./redis/redis.conf:/usr/local/etc/redis/redisconf.conf
+        - ./redis/db:/dbculo
 
   tsung:
-    image: prima/tsung
-    entrypoint: /start.sh
+    build:
+      context: ./tsung
     container_name: blockchain-finder_tsung
     volumes:
       - ./tsung/tsung_template.xml:/root/.tsung/tsung_template.xml
+      - ./tsung/tsung_servicerate.xml:/root/.tsung/tsung_servicerate.xml
       - ./tsung/results.txt:/results.txt
-      - ./tsung/test_transactions.data:/root/.tsung/test_transactions.data
+      - ./tsung/test_transactions.data:/test_transactions.data
+      - ./tsung/test_transactions_one.data:/test_transactions_one.data
       - ./tsung/logs:/root/.tsung/log
+      - ./tsung/discover-service-rate.py:/discover-service-rate.py  
+      - ./tsung/fill-cache.py:/fill-cache.py
       - ./tsung/start.sh:/start.sh
     ports:
       - 8091:8091
-    depends_on:
-      - blockchain-finder
+#    depends_on:
+#      - munin
     restart: on-failure
     cpus: '1'
     mem_limit: 256M
+#
+#  munin:
+#    image: buildfailure/munin-server
+#    container_name: blockchain-finder_munin
+#    pid: host
+#    environment:
+#      - MUNIN_USER=sps
+#      - MUNIN_PASSWORD=marin
+#      - NODES=blockchain-finder:blockchain-finder
+#    ports:
+#      - 8082:8080
+#    depends_on:
+#      - blockchain-finder

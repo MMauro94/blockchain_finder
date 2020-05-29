@@ -5,10 +5,12 @@
         <client host="localhost" use_controller_vm="true"/>
     </clients>
 
-
     <servers>
-        <server host="blockchain-finder" port="8080" type="tcp"/>
+        <server host="blockchain-finder" port="8081" type="tcp"/>
     </servers>
+    <monitoring>
+        <monitor host="blockchain-finder" type="munin"/>
+    </monitoring>
 
     <load>
         <arrivalphase phase="1" duration="%duration%" unit="minute">
@@ -17,21 +19,16 @@
     </load>
 
     <options>
-        <option name="file_server" id="tranx" value="/root/.tsung/test_transactions.data"/>
+        <option name="file_server" id="tranx" value="/test_transactions_one.data"/>
     </options>
-
     <sessions>
         <session name="es_load" weight="1" type="ts_http">
             <setdynvars sourcetype="file" fileid="tranx" delimiter="\n" order="random">
                 <var name="tx"/>
             </setdynvars>
 
-            <request>
-                <http url="/" method="GET"/>
-            </request>
-
             <request subst="true">
-                <http url="/search?no_redis&amp;tx_id=%%_tx%%" method="GET"/>
+                <http url="/search?tx_id=%%_tx%%" method="GET"/>
             </request>
         </session>
     </sessions>
